@@ -120,7 +120,8 @@ const handleClick = async () => {
     Получить отчет
   </NButton>
 
-  <NProgress v-if="loading" type="line" :percentage="progress" :indicator-placement="'inside'" processing />
+  <NProgress v-if="loading" type="line" :height="24" :border-radius="4" :percentage="progress"
+    :indicator-placement="'inside'" processing />
 </template>
 
 <style scoped></style>
