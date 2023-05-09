@@ -9,10 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vicons/ionicons5": "^0.12.0",
+    "axios": "^1.4.0",
+    "lodash": "^4.17.21",
+    "pino": "^8.14.1",
+    "pino-pretty": "^10.0.0",
+    "ru-validation-codes": "^2.9.0",
+    "vee-validate": "3",
     "vue": "^3.2.47",
-    "vue-router": "4"
+    "vue-router": "4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.2/xlsx-0.19.2.tgz"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.194",
     "@types/node": "^20.1.0",
     "@vitejs/plugin-vue": "^4.1.0",
     "naive-ui": "^2.34.3",

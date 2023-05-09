@@ -1,6 +1,6 @@
 import axios from "axios";
-import { DADATA_API_KEY } from "../../config/env";
-import logger from "../../config/logger";
+import { dadataApiKey } from "@/config/env";
+// import logger from "@/config/logger";
 
 type BranchType = "MAIN" | "BRANCH";
 export type OrgStatus = "ACTIVE" | "LIQUIDATING" | "LIQUIDATED" | "BANKRUPT" | "REORGANIZING";
@@ -83,7 +83,7 @@ type SuggestionsResponse = {
     suggestions: Array<Suggestion>;
 }
 
-export const postSuggestions = async (query: string) => {
+export const postSuggestions = async (query: string): Promise<SuggestionsResponse | null> => {
     try {
         const res = await axios<SuggestionsResponse>({
             method: "post",
@@ -92,24 +92,24 @@ export const postSuggestions = async (query: string) => {
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": "Token " + DADATA_API_KEY,
+                "Authorization": "Token " + dadataApiKey,
             },
         });
 
-        logger.info({
-            context: "postSuggestions",
-            params: { query },
-            message: res.status
-        });
+        // logger.info({
+        //     context: "postSuggestions",
+        //     params: { query },
+        //     message: res.status
+        // });
 
         return res.data;
 
     } catch (e) {
-        logger.error({
-            context: "postSuggestions",
-            params: { query },
-            message: e
-        });
+        // logger.error({
+        //     context: "postSuggestions",
+        //     params: { query },
+        //     message: e
+        // });
 
         return null;
     }
