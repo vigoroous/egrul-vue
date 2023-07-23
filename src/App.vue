@@ -1,5 +1,11 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { NMessageProvider } from 'naive-ui';
+import MessagesNotifier from './views/components/feedback/MessagesNotifier.vue';
+</script>
 
 <template>
-  <RouterView />
+    <NMessageProvider placement="top-right">
+        <MessagesNotifier />
+        <RouterView />
+    </NMessageProvider>
 </template>

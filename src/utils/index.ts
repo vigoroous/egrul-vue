@@ -1,5 +1,14 @@
-import { chunk } from 'lodash';
 import XLSX from 'xlsx';
+
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const chunk = <T>(array: T[], size = 1): T[][] => {
+    const cache: T[][] = [];
+    const tmp = [...array];
+    if (size <= 0) return cache;
+    while (tmp.length) cache.push(tmp.splice(0, size));
+    return cache;
+};
 
 export const readColumnXlsx = (buffer: ArrayBuffer, columnName = 'B') => {
     const workbook = XLSX.read(buffer);
@@ -28,7 +37,7 @@ export const createReportXslx = async (rows: any, errors: string[]) => {
     /* fix headers */
     XLSX.utils.sheet_add_aoa(
         worksheet,
-        [['Наименование ЮЛ / ФИО ИП', 'ИНН', 'ОГРН', 'Статус', 'Дата прекращения деятельности', 'Примечание']],
+        [['Наименование ЮЛ / ФИО ИП', 'ИНН', 'ОГРН', 'Адрес', 'Статус', 'Дата прекращения деятельности', 'Примечание']],
         { origin: 'A1' },
     );
 

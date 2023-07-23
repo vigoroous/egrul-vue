@@ -1,3 +1,4 @@
+import { egrulBaseUrl } from '@src/config/env';
 import axios, { AxiosError } from 'axios';
 
 type CompanyType = {
@@ -27,7 +28,7 @@ export const getSearch = async (token: string) => {
 
         const res = await axios.request<SearchResponse>({
             method: 'get',
-            url: `https://egrul.nalog.ru/search-result/${token}?r=${timestamp}&_=${timestamp}`,
+            url: `${egrulBaseUrl}/search-result/${token}?r=${timestamp}&_=${timestamp}`,
         });
 
         return res.data;

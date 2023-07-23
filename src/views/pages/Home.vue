@@ -1,31 +1,21 @@
 <script setup lang="ts">
 import Layout from '@src/views/components/layout/Layout.vue';
-import { NH1, NRadioGroup, NRadio, NSwitch } from 'naive-ui';
+import { NH1, NRadioGroup, NRadio, NTabs, NTabPane } from 'naive-ui';
 import { NUpload, NUploadDragger, NP, NText, NIcon, NButton, NProgress } from 'naive-ui';
-import type { UploadFileInfo, UploadProps } from 'naive-ui';
+import type { UploadProps } from 'naive-ui';
 import { ArchiveOutline } from '@vicons/ionicons5';
+import { DadataService } from '@src/services/dadata.service';
+import { EgrulService } from '@src/services/egrul.service';
+import { reactive, ref } from 'vue';
+import { readColumnXlsx } from '@src/utils';
 
-import { ref } from 'vue';
-import { first } from 'lodash';
-import { checkINN } from 'ru-validation-codes';
-import { createReportXslx, readColumnXlsx } from '@src/utils/workbook.utils';
-import { postSuggestions } from '@src/api/dadata/postSuggestions';
-import { OrgStatusDescription } from '@src/api/dadata/postSuggestions';
-
-type CompanyRecord = {
-    name: string;
-    inn: string;
-    ogrn: string;
-    status: string;
-    liquidationDate?: string;
-    annotation: string;
-};
-
-const fileList = ref<UploadFileInfo[]>([]);
-const loading = ref(false);
+const loading = reactive({
+    generateReport: false,
+    getStatements: false,
+});
+const innArray = ref<string[]>([]);
 const progress = ref(0);
-const statementNaming = ref<StatementNamingType>('by_index');
-const downloadStatement = ref(false);
+const statementNaming = ref<StatementNamingType>('by_inn');
 
 type StatementNamingType = 'by_index' | 'by_inn';
 
@@ -35,82 +25,40 @@ const radioOptions: { label: string; value: StatementNamingType }[] = [
         value: 'by_index',
     },
     {
-        label: 'ИНН_ОГРН_НАЗВАНИЕ',
+        label: 'НАЗВАНИЕ_ИНН_ОГРН',
         value: 'by_inn',
     },
 ];
 
-const handleChange: UploadProps['onChange'] = (data) => {
-    fileList.value = data.fileList;
+const handleChange: UploadProps['onChange'] = async (data) => {
+    try {
+        const file = data.fileList[0]?.file;
+        if (!file) {
+            innArray.value = [];
+            return;
+        }
+
+        const buffer = await file.arrayBuffer();
+        innArray.value = readColumnXlsx(buffer).flatMap((line: string | number) => {
+            return line.toString().split(/[ ;]/g);
+        });
+    } catch (e) {
+        console.log(e);
+    }
 };
 
-// TODO: Immutable js Map (with complex key)
 const generateReport = async () => {
-    loading.value = true;
+    loading.generateReport = true;
     progress.value = 0;
+    await DadataService.getData(innArray.value, progress, 50);
+    loading.generateReport = false;
+};
 
-    const file = first(fileList.value)?.file;
-    if (!file) return;
-
-    const buffer = await file.arrayBuffer();
-
-    const innArray = readColumnXlsx(buffer).flatMap((line: string | number) => {
-        return line.toString().split(/[ ;]/g);
-    });
-    progress.value = 10;
-
-    const errArray: string[] = [];
-    const rows: CompanyRecord[] = [];
-
-    for (const [key, inn] of innArray.entries()) {
-        progress.value = Math.round((key / innArray.length) * 100);
-
-        if (checkINN(inn)) {
-            const res = await postSuggestions(inn);
-
-            if (!res) {
-                console.log('Api error');
-                continue;
-            }
-
-            if (!res.suggestions.length) {
-                rows.push({
-                    name: '',
-                    inn: inn,
-                    ogrn: '',
-                    status: '',
-                    liquidationDate: '',
-                    annotation: 'Нет данных в ЕГРЮЛ',
-                });
-                continue;
-            }
-
-            for (const suggestion of res.suggestions) {
-                if (
-                    (suggestion.data.type === 'LEGAL' && suggestion.data.branch_type === 'MAIN') ||
-                    suggestion.data.type === 'INDIVIDUAL'
-                ) {
-                    rows.push({
-                        name: suggestion.value,
-                        inn: suggestion.data.inn,
-                        ogrn: suggestion.data.ogrn,
-                        status: OrgStatusDescription[suggestion.data.state.status],
-                        liquidationDate: (suggestion.data.state.liquidation_date
-                            ? new Date(suggestion.data.state.liquidation_date)
-                            : null
-                        )?.toLocaleDateString('ru-RU'),
-                        annotation: '',
-                    });
-                }
-            }
-        } else {
-            errArray.push(inn);
-        }
-    }
-
-    await createReportXslx(rows, errArray);
-
-    loading.value = false;
+const getStatements = async () => {
+    loading.getStatements = true;
+    progress.value = 0;
+    await EgrulService.getStatements(innArray.value, progress, 300);
+    loading.getStatements = false;
 };
 </script>
 
@@ -137,24 +85,38 @@ const generateReport = async () => {
                 </NUploadDragger>
             </NUpload>
 
-            <div class="row" style="margin-bottom: 8px">
-                <span>Скачать выписки</span>
-                <NSwitch v-model:value="downloadStatement" />
-            </div>
-            <div v-show="downloadStatement" class="col" style="margin-bottom: 8px">
-                <span>Название выписки</span>
-                <NRadioGroup v-model:value="statementNaming">
-                    <NRadio v-for="item of radioOptions" :key="item.value" :value="item.value" :label="item.label" />
-                </NRadioGroup>
-            </div>
-            <div>
-                <NButton :disabled="!fileList.length" @click="generateReport" :loading="loading">
-                    Получить отчет
-                </NButton>
-            </div>
+            <NTabs type="line" animated>
+                <NTabPane name="report" tab="Отчет">
+                    <div class="box">
+                        <NButton :disabled="!innArray.length" @click="generateReport" :loading="loading.generateReport">
+                            Получить отчет
+                        </NButton>
+                    </div>
+                </NTabPane>
+                <NTabPane name="statements" tab="Выписки">
+                    <div class="col box">
+                        <span>Название выписки</span>
+                        <NRadioGroup v-model:value="statementNaming" class="button-group">
+                            <div v-for="item of radioOptions">
+                                <NRadio :key="item.value" :value="item.value" :label="item.label" />
+                            </div>
+                        </NRadioGroup>
+
+                        <div>
+                            <NButton
+                                :disabled="!innArray.length"
+                                @click="getStatements"
+                                :loading="loading.getStatements"
+                            >
+                                Получить выписки
+                            </NButton>
+                        </div>
+                    </div>
+                </NTabPane>
+            </NTabs>
         </div>
         <NProgress
-            v-if="loading"
+            v-if="loading.generateReport || loading.getStatements"
             type="line"
             :height="24"
             :border-radius="4"
@@ -166,14 +128,26 @@ const generateReport = async () => {
 </template>
 
 <style scoped lang="scss">
+.box {
+    padding: 24px 16px;
+}
+
 .col {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
 }
 
 .row {
     display: flex;
+    gap: 16px;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
+    margin-bottom: 16px;
 }
 </style>
+@src/utils

@@ -10,4 +10,14 @@ export default defineConfig({
             '@src': resolve(__dirname, 'src'),
         },
     },
+    server: {
+        port: 5000,
+        proxy: {
+            '/egrul': {
+                target: 'https://egrul.nalog.ru',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/egrul/, ''),
+            },
+        },
+    },
 });

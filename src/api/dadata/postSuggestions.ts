@@ -69,6 +69,10 @@ type Suggestion = {
         address: {
             value: string;
             unrestricted_value: string;
+            data: {
+                [key: string]: null | string;
+                source: string;
+            };
         };
         phones: null;
         emails: null;

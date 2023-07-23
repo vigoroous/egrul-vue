@@ -1,3 +1,4 @@
+import { egrulBaseUrl } from '@src/config/env';
 import axios, { AxiosError } from 'axios';
 
 type VypStatusResponse = {
@@ -10,7 +11,7 @@ export const getVypStatus = async (token: string) => {
 
         const res = await axios.request<VypStatusResponse>({
             method: 'get',
-            url: `https://egrul.nalog.ru/vyp-status/${token}?r=${timestamp}&_=${timestamp}`,
+            url: `${egrulBaseUrl}/vyp-status/${token}?r=${timestamp}&_=${timestamp}`,
         });
 
         return res.data;

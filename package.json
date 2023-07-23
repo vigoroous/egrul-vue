@@ -11,7 +11,6 @@
   "dependencies": {
     "@vicons/ionicons5": "^0.12.0",
     "axios": "^1.4.0",
-    "lodash": "^4.17.21",
     "normalize.css": "^8.0.1",
     "pino": "^8.14.1",
     "pino-pretty": "^10.0.0",
@@ -23,7 +22,6 @@
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.2/xlsx-0.19.2.tgz"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.194",
     "@types/node": "^20.1.0",
     "@vitejs/plugin-vue": "^4.1.0",
     "naive-ui": "^2.34.3",

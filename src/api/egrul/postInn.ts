@@ -1,3 +1,4 @@
+import { egrulBaseUrl } from '@src/config/env';
 import axios, { AxiosError } from 'axios';
 
 type InnResponse = {
@@ -7,9 +8,9 @@ type InnResponse = {
 
 export const postInn = async (query: string, page?: number) => {
     try {
-        const res = await axios<InnResponse>({
+        const res = await axios.request<InnResponse>({
             method: 'post',
-            url: 'https://egrul.nalog.ru',
+            url: egrulBaseUrl,
             data: new URLSearchParams({
                 query: query,
                 page: page ? page.toString() : '',

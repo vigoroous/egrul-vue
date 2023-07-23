@@ -1,29 +1,26 @@
+import { egrulBaseUrl } from '@src/config/env';
 import axios, { AxiosError } from 'axios';
-// import { createWriteStream } from "fs";
-import { Stream } from 'stream';
-import path from 'path';
-import { existsSync, mkdirSync, createWriteStream } from 'fs';
-
-// import { DOWNLOAD_DIR } from '../../config/env';
+// import { Stream } from 'stream';
+// import { createWriteStream } from 'fs';
 
 export const getVypDownload = async (token: string, fileName: string) => {
-    // if (!existsSync(DOWNLOAD_DIR)) mkdirSync(DOWNLOAD_DIR, { recursive: true });
-    // const downloadFilePath = path.resolve(DOWNLOAD_DIR, fileName);
-    const writer = createWriteStream(fileName);
-
     try {
-        const res = await axios.request<Stream>({
+        const res = await axios.request<Blob>({
             method: 'get',
-            url: `https://egrul.nalog.ru/vyp-download/${token}`,
-            responseType: 'stream',
+            url: `${egrulBaseUrl}/vyp-download/${token}`,
+            responseType: 'blob',
         });
 
-        res.data.pipe(writer);
-
-        return new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-        });
+        const a = document.createElement('a');
+        const url = URL.createObjectURL(res.data);
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
     } catch (e) {
         const { code, message } = e as AxiosError;
         console.log({

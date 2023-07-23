@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MessageOptions } from 'naive-ui/es/message';
-import { App } from 'vue';
 
 type InsideNames = 'notify::info' | 'notify::success' | 'notify::warning' | 'notify::error' | 'api::error';
 
@@ -42,9 +41,3 @@ export class Notifier {
 }
 
 export const notifier = new Notifier();
-
-export default {
-    install: (app: App) => {
-        app.config.globalProperties.$notifier = notifier;
-    },
-};
