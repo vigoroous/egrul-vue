@@ -148,4 +148,3 @@ const getStatements = async () => {
     margin-bottom: 16px;
 }
 </style>
-@src/utils

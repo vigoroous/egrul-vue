@@ -17,4 +17,3 @@ onMounted(() =>
 <template>
     <div id="notifier-messages"></div>
 </template>
-@src/notifier/notifier
