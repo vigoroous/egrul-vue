@@ -16,7 +16,7 @@ async function enshureVypStatus(fileHash: string, wait?: number) {
     }
 }
 
-async function downloadChunk(innChunk: string[], page: number, wait?: number) {
+async function downloadChunk(innChunk: string[], naming: StatementNamingType, page: number, wait?: number) {
     if (wait) await delay(wait);
     const innRequest = innChunk.join(' ');
     const innRes = await postInn(innRequest, page);
@@ -38,23 +38,31 @@ async function downloadChunk(innChunk: string[], page: number, wait?: number) {
 
         if (wait) await delay(wait);
         const companyName = row.c ?? row.n ?? row.k ?? 'undefined';
-        const fileName = companyName.replace(/[" ]/g, '_') + `_${row.i}_${row.o}.pdf`;
+        const fileName = naming === 'by_inn' ? companyName.replace(/[" ]/g, '_') + `_${row.i}_${row.o}.pdf` : '_.pdf';
         await getVypDownload(row.t, fileName);
     }
 
     return { total: Number(searchRes.rows[0]?.tot) };
 }
 
-const refetchChunk = async (innChunk: string[], page: number, wait?: number) => {
+const refetchChunk = async (innChunk: string[], naming: StatementNamingType, page: number, wait?: number) => {
     for (;;) {
-        const res = await downloadChunk(innChunk, page, wait);
+        const res = await downloadChunk(innChunk, naming, page, wait);
         if (res) return res.total;
         if (wait) await delay(wait);
     }
 };
 
+export type StatementNamingType = 'by_index' | 'by_inn';
+
 export class EgrulService {
-    static async getStatements(innArr: string[], progress: Ref<number>, wait?: number, perPage = 20) {
+    static async getStatements(
+        innArr: string[],
+        naming: StatementNamingType,
+        progress: Ref<number>,
+        wait?: number,
+        perPage = 20,
+    ) {
         const innChunks = chunk(
             innArr.filter((x) => checkINN(x)),
             perPage,
@@ -63,12 +71,12 @@ export class EgrulService {
         for (const [key, chunk] of innChunks.entries()) {
             progress.value = Math.round((key / innChunks.length) * 100);
 
-            const res = await downloadChunk(chunk, 1, wait);
+            const res = await downloadChunk(chunk, naming, 1, wait);
 
-            const pagesCount = res ? Math.ceil(res.total / perPage) : await refetchChunk(chunk, 1, wait);
+            const pagesCount = res ? Math.ceil(res.total / perPage) : await refetchChunk(chunk, naming, 1, wait);
             if (pagesCount > 1) {
                 for (let page = 2; page <= pagesCount; page++) {
-                    await refetchChunk(chunk, page, wait);
+                    await refetchChunk(chunk, naming, page, wait);
                 }
             }
         }

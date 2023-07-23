@@ -5,7 +5,7 @@ import { NUpload, NUploadDragger, NP, NText, NIcon, NButton, NProgress } from 'n
 import type { UploadProps } from 'naive-ui';
 import { ArchiveOutline } from '@vicons/ionicons5';
 import { DadataService } from '@src/services/dadata.service';
-import { EgrulService } from '@src/services/egrul.service';
+import { EgrulService, StatementNamingType } from '@src/services/egrul.service';
 import { reactive, ref } from 'vue';
 import { readColumnXlsx } from '@src/utils';
 
@@ -16,8 +16,6 @@ const loading = reactive({
 const innArray = ref<string[]>([]);
 const progress = ref(0);
 const statementNaming = ref<StatementNamingType>('by_inn');
-
-type StatementNamingType = 'by_index' | 'by_inn';
 
 const radioOptions: { label: string; value: StatementNamingType }[] = [
     {
@@ -57,7 +55,7 @@ const generateReport = async () => {
 const getStatements = async () => {
     loading.getStatements = true;
     progress.value = 0;
-    await EgrulService.getStatements(innArray.value, progress, 300);
+    await EgrulService.getStatements(innArray.value, statementNaming.value, progress, 300);
     loading.getStatements = false;
 };
 </script>
