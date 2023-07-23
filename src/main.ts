@@ -1,13 +1,8 @@
-import { createApp } from 'vue'
-import '@/styles/normalize.min.css'
-import router from './router'
-import App from "./App.vue"
-import { create } from 'naive-ui'
+import { createApp } from 'vue';
+import router from './router';
+import App from './App.vue';
+import 'normalize.css';
+import '@src/assets/styles/global.css';
+import '@src/assets/fonts/Inter/stylesheet.css';
 
-const app = createApp(App)
-const naive = create();
-
-app.use(naive);
-app.use(router);
-
-app.mount('#app');
+createApp(App).use(router).mount('#app');

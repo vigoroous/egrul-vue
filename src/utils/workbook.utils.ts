@@ -1,7 +1,7 @@
-import { chunk } from "lodash";
-import XLSX from "xlsx";
+import { chunk } from 'lodash';
+import XLSX from 'xlsx';
 
-export const readColumnXlsx = (buffer: ArrayBuffer, columnName = "B") => {
+export const readColumnXlsx = (buffer: ArrayBuffer, columnName = 'B') => {
     const workbook = XLSX.read(buffer);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
@@ -14,33 +14,28 @@ export const readColumnXlsx = (buffer: ArrayBuffer, columnName = "B") => {
     }
 
     return column;
-}
+};
 
 export const createReportXslx = async (rows: any, errors: string[]) => {
-    
-
     /* generate worksheet and workbook */
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Dates");
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Dates');
 
     const worksheet_error = XLSX.utils.aoa_to_sheet(chunk(errors, 1));
-    XLSX.utils.book_append_sheet(workbook, worksheet_error, "Errors");
+    XLSX.utils.book_append_sheet(workbook, worksheet_error, 'Errors');
 
     /* fix headers */
-    XLSX.utils.sheet_add_aoa(worksheet, [[
-        "Наименование ЮЛ / ФИО ИП",
-        "ИНН",
-        "ОГРН",
-        "Статус",
-        "Дата прекращения деятельности",
-        "Примечание"
-    ]], { origin: "A1" });
+    XLSX.utils.sheet_add_aoa(
+        worksheet,
+        [['Наименование ЮЛ / ФИО ИП', 'ИНН', 'ОГРН', 'Статус', 'Дата прекращения деятельности', 'Примечание']],
+        { origin: 'A1' },
+    );
 
     /* calculate column width */
     // @ts-ignore
     const max_width = rows.reduce((w, r) => Math.max(w, r.name.length), 10);
-    worksheet["!cols"] = [{ wch: max_width }];
+    worksheet['!cols'] = [{ wch: max_width }];
 
     XLSX.writeFile(workbook, `data/Report_${Date.now()}.xlsx`, { compression: true });
-}
+};

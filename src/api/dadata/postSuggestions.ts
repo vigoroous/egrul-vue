@@ -1,17 +1,16 @@
-import axios from "axios";
-import { dadataApiKey } from "@/config/env";
-// import logger from "@/config/logger";
+import { dadataApiKey } from '@src/config/env';
+import axios, { AxiosError } from 'axios';
 
-type BranchType = "MAIN" | "BRANCH";
-export type OrgStatus = "ACTIVE" | "LIQUIDATING" | "LIQUIDATED" | "BANKRUPT" | "REORGANIZING";
-type OrgType = "LEGAL" | "INDIVIDUAL";
+type BranchType = 'MAIN' | 'BRANCH';
+export type OrgStatus = 'ACTIVE' | 'LIQUIDATING' | 'LIQUIDATED' | 'BANKRUPT' | 'REORGANIZING';
+type OrgType = 'LEGAL' | 'INDIVIDUAL';
 
-export const OrgStatusDescription : Record<OrgStatus, string> = {
-    ACTIVE: "Действующая",
-    BANKRUPT: "Признано несостоятельным (банкротом)",
-    LIQUIDATED: "Ликвидирована",
-    LIQUIDATING: "Находится в стадии ликвидации",
-    REORGANIZING: "Находится в процессе реорганизации в форме присоединения к другому юрлицу"
+export const OrgStatusDescription: Record<OrgStatus, string> = {
+    ACTIVE: 'Действующая',
+    BANKRUPT: 'Признано несостоятельным (банкротом)',
+    LIQUIDATED: 'Ликвидирована',
+    LIQUIDATING: 'Находится в стадии ликвидации',
+    REORGANIZING: 'Находится в процессе реорганизации в форме присоединения к другому юрлицу',
 };
 
 type Suggestion = {
@@ -81,36 +80,31 @@ type Suggestion = {
 
 type SuggestionsResponse = {
     suggestions: Array<Suggestion>;
-}
+};
 
 export const postSuggestions = async (query: string): Promise<SuggestionsResponse | null> => {
     try {
-        const res = await axios<SuggestionsResponse>({
-            method: "post",
-            url: "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party",
+        const res = await axios.request<SuggestionsResponse>({
+            method: 'post',
+            url: 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party',
             data: { query: query },
             headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Token " + dadataApiKey,
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                Authorization: 'Token ' + dadataApiKey,
             },
         });
 
-        // logger.info({
-        //     context: "postSuggestions",
-        //     params: { query },
-        //     message: res.status
-        // });
-
         return res.data;
-
     } catch (e) {
-        // logger.error({
-        //     context: "postSuggestions",
-        //     params: { query },
-        //     message: e
-        // });
+        const { code, message } = e as AxiosError;
+        console.log({
+            context: 'postSuggestions',
+            params: { query },
+            message: message,
+            code: code,
+        });
 
         return null;
     }
-}
+};

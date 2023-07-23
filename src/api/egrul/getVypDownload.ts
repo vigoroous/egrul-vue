@@ -1,50 +1,36 @@
-import axios from "axios";
+import axios, { AxiosError } from 'axios';
 // import { createWriteStream } from "fs";
-import { Stream } from "stream";
+import { Stream } from 'stream';
 import path from 'path';
-import fs from 'fs';
+import { existsSync, mkdirSync, createWriteStream } from 'fs';
 
-import { DOWNLOAD_DIR } from "../../config/env";
-import logger from "../../config/logger";
+// import { DOWNLOAD_DIR } from '../../config/env';
 
-
-
-
-export const getVypDownloadRequest = async (token: string, fileName: string) => {
-    if (!fs.existsSync(DOWNLOAD_DIR)) fs.mkdirSync(DOWNLOAD_DIR, { recursive: true });
-    const downloadFilePath = path.resolve(DOWNLOAD_DIR, fileName);
-    const writer = fs.createWriteStream(downloadFilePath);
+export const getVypDownload = async (token: string, fileName: string) => {
+    // if (!existsSync(DOWNLOAD_DIR)) mkdirSync(DOWNLOAD_DIR, { recursive: true });
+    // const downloadFilePath = path.resolve(DOWNLOAD_DIR, fileName);
+    const writer = createWriteStream(fileName);
 
     try {
-        const res = await axios<Stream>({
-            method: "get",
+        const res = await axios.request<Stream>({
+            method: 'get',
             url: `https://egrul.nalog.ru/vyp-download/${token}`,
-            responseType: 'stream'
+            responseType: 'stream',
         });
 
         res.data.pipe(writer);
 
-        logger.info({
-            context: "getVypDownloadRequest",
-            params: {
-                token,
-            },
-            message: res.status
-        });
-
         return new Promise((resolve, reject) => {
-            writer.on('finish', resolve)
-            writer.on('error', reject)
+            writer.on('finish', resolve);
+            writer.on('error', reject);
         });
-
-
     } catch (e) {
-        logger.error({
-            context: "getVypDownloadRequest",
-            params: {
-                token,
-            },
-            message: e
+        const { code, message } = e as AxiosError;
+        console.log({
+            context: 'getVypDownload',
+            params: { token },
+            message: message,
+            code: code,
         });
 
         return;

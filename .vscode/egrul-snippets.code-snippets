@@ -1,0 +1,15 @@
+{
+    "Log error": {
+        "prefix": ["flog"],
+        "body": [
+            "const { code, message } = e as AxiosError;",
+            "console.log({",
+            "\tcontext: '${TM_FILENAME/[^0-9^a-z]\\w+//gi}',",
+            "\tparams: { $0 },",
+            "\tmessage: message,",
+            "\tcode: code,",
+            "});"
+        ],
+        "description": "Log error."
+    }
+}
